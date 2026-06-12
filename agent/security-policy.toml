@@ -1,0 +1,49 @@
+schema_version = "1.0.0"
+
+# Security policy for jankurai-standard. This docs/standard repo commits no
+# dependency manifest of its own, so the secret scanner is the only required
+# tool; the dependency, SBOM, and workflow scanners run when a manifest is
+# present and stay declared here so a future product surface inherits the full
+# matrix. The jankurai security run lane normalizes all of these into one
+# evidence envelope under target/jankurai/security/evidence.json.
+
+enabled_tools = [
+  "gitleaks",
+  "cargo-audit",
+  "npm",
+  "zizmor",
+  "syft",
+  "cargo-deny",
+  "grype",
+  "trivy"
+]
+
+required_tools = [
+  "gitleaks"
+]
+
+advisory_tools = [
+  "cargo-audit",
+  "npm",
+  "zizmor",
+  "syft"
+]
+
+[severity_thresholds]
+fail_lane_on = "high"
+
+[profiles.local]
+enabled_tools = ["gitleaks", "cargo-audit", "npm", "zizmor", "syft"]
+required_tools = ["gitleaks"]
+advisory_tools = ["cargo-audit", "npm", "zizmor", "syft"]
+
+[profiles.ci]
+enabled_tools = ["gitleaks", "cargo-audit", "npm", "zizmor", "syft", "cargo-deny", "grype", "trivy"]
+required_tools = ["gitleaks", "zizmor"]
+advisory_tools = ["cargo-audit", "npm", "syft", "cargo-deny", "grype", "trivy"]
+
+[profiles.release]
+enabled_tools = ["gitleaks", "cargo-audit", "npm", "zizmor", "syft", "cargo-deny", "grype", "trivy"]
+required_tools = ["gitleaks", "zizmor"]
+advisory_tools = ["cargo-audit", "npm", "syft", "cargo-deny"]
+require_one_of = [["grype", "trivy"]]

@@ -1,0 +1,17 @@
+# Boundary manifest for jankurai-standard.
+# This is a documentation/standard repository: it publishes the standard text,
+# the audit rubric, and the machine-readable maps that route agents through it.
+# No web, Rust crate, database, queue, or Python surface is committed here, so
+# only the stack identity and the documentation ownership block apply. The prose
+# companion is docs/boundaries.md.
+
+[stack]
+id = "rust-ts-vite-react-postgres-bounded-python"
+version = "0.5.0"
+
+# This repo owns standard and guidance documentation only. The boundary rules it
+# declares govern consuming code repositories, not this corpus.
+[docs]
+owned_paths = ["docs/", "agent/", "README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", "SPLIT.md"]
+# Intentional negative-example corpus: excluded from product boundary scans.
+corpus_paths = ["docs/BAD_"]

@@ -1,0 +1,56 @@
+# Proof lanes for jankurai-standard.
+# This is a documentation/standard repo with no compiler toolchain, so every
+# lane below runs in this repository alone and its required_artifacts are
+# produced by its own command. Local and CI runs share the ops/ci/*.sh scripts.
+
+[[lane]]
+name = "required"
+command = "bash scripts/ci-local.sh required"
+purpose = "verify the canonical standard documents are present and routable"
+command_id = "lane.required"
+kind = "validation"
+cost = 2
+rules_covered = ["HLT-003-OWNERLESS-PATH", "HLT-004-UNMAPPED-PROOF"]
+required_artifacts = []
+timeout_seconds = 300
+requires_network = false
+destructive = false
+
+[[lane]]
+name = "fast"
+command = "bash scripts/ci-local.sh fast"
+purpose = "documentation-presence checks plus the jankurai self-audit"
+command_id = "lane.fast"
+kind = "validation"
+cost = 5
+rules_covered = ["HLT-001-DEAD-MARKER", "HLT-003-OWNERLESS-PATH", "HLT-004-UNMAPPED-PROOF"]
+required_artifacts = [".jankurai/repo-score.json", ".jankurai/repo-score.md"]
+timeout_seconds = 900
+requires_network = false
+destructive = false
+
+[[lane]]
+name = "audit"
+command = "bash scripts/ci-local.sh audit"
+purpose = "write .jankurai/repo-score.json and .jankurai/repo-score.md"
+command_id = "lane.audit"
+kind = "audit"
+cost = 5
+rules_covered = ["HLT-001-DEAD-MARKER", "HLT-003-OWNERLESS-PATH", "HLT-004-UNMAPPED-PROOF", "HLT-008-FALSE-GREEN-RISK"]
+required_artifacts = [".jankurai/repo-score.json", ".jankurai/repo-score.md"]
+timeout_seconds = 900
+requires_network = false
+destructive = false
+
+[[lane]]
+name = "security"
+command = "bash scripts/ci-local.sh security"
+purpose = "secret scanning and dependency scanning of any committed manifests"
+command_id = "lane.security"
+kind = "security"
+cost = 10
+rules_covered = ["HLT-010-SECRET-SPRAWL", "HLT-016-SUPPLY-CHAIN-DRIFT", "HLT-020-CI-HARDENING-GAP"]
+required_artifacts = []
+timeout_seconds = 900
+requires_network = false
+destructive = false

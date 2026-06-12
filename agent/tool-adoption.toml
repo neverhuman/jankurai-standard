@@ -1,0 +1,55 @@
+schema_version = "1.0.0"
+
+# Tool-adoption manifest for jankurai-standard.
+# This is a documentation/standard repo, so the adopted tools are the ones that
+# run against documents and the control-plane maps. Each tool whose mode is
+# `auto` or `required` is executed by ops/ci/tool-adoption.sh in CI and its
+# evidence artifact is uploaded by the workflow's upload-artifact step.
+
+[[tools]]
+id = "audit-ci"
+mode = "auto"
+
+[[tools]]
+id = "proof-routing"
+mode = "auto"
+
+[[tools]]
+id = "security"
+mode = "auto"
+
+[[tools]]
+id = "contract-drift"
+mode = "auto"
+
+[[tools]]
+id = "release-readiness"
+mode = "auto"
+
+[[tools]]
+id = "agent-tool-supply"
+mode = "auto"
+
+[[tools]]
+id = "cost-budget"
+mode = "auto"
+
+[[tools]]
+id = "authz-matrix"
+mode = "advisory"
+
+[[tools]]
+id = "input-boundary"
+mode = "advisory"
+
+[[tools]]
+id = "ci-bad-behavior"
+mode = "advisory"
+
+[[tools]]
+id = "git-bad-behavior"
+mode = "advisory"
+
+[[tools]]
+id = "release-bad-behavior"
+mode = "advisory"

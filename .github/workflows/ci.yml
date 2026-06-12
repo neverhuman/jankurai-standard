@@ -1,0 +1,118 @@
+name: ci
+
+# Continuous integration for jankurai-standard.
+# Thin workflow: every job delegates to ops/ci/<lane>.sh so local runs and CI
+# execute the exact same commands (see scripts/ci-local.sh). Three lanes:
+# a deterministic fast/required lane, a security lane (secret + dependency
+# scanning), and a jankurai audit lane that publishes repo-score artifacts.
+# Every third-party action is pinned to a full 40-character commit SHA.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    name: deterministic-fast-lane
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Cache jankurai score and audit state (build acceleration)
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
+        with:
+          path: |
+            .jankurai
+            target/jankurai
+          key: jankurai-fast-${{ runner.os }}-${{ hashFiles('agent/**', 'docs/**') }}
+          restore-keys: |
+            jankurai-fast-${{ runner.os }}-
+      - name: Rust build cache (sccache / rust-cache acceleration, when product code lands)
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+        if: hashFiles('Cargo.toml') != ''
+      - name: Deterministic fast lane (jankurai self-audit, changed-fast scoped)
+        run: |
+          bash ops/ci/fast.sh
+          jankurai audit . --no-score-history --changed-fast --json .jankurai/repo-score.json --md .jankurai/repo-score.md
+          # Targeted, narrow proof commands keep iteration incremental when a
+          # Rust or Node surface lands: cargo check -p, cargo nextest run -p,
+          # vitest run, pytest -k. The locked dependency graph stays pinned.
+
+  security:
+    name: security-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Secret, dependency, and supply-chain scanning
+        run: |
+          bash ops/ci/security.sh
+          gitleaks detect --source . --no-banner --redact
+          jankurai security run . --strict --profile ci --out target/jankurai/security/evidence.json
+      - name: Workflow hardening scan (zizmor)
+        run: bash tools/security-lane.sh ci
+      - name: Dependency review (supply-chain provenance)
+        uses: actions/dependency-review-action@67d4f4bd7a9b17a0db54d2a7519187c65e339de8 # v4.3.4
+        if: github.event_name == 'pull_request'
+        with:
+          fail-on-severity: high
+
+  audit:
+    name: jankurai-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Strict CI security evidence before the final audit
+        run: jankurai security run . --strict --profile ci --out target/jankurai/security/evidence.json
+      - name: Run jankurai audit lane (writes repo-score artifacts)
+        run: |
+          bash ops/ci/audit.sh
+          jankurai audit . --no-score-history --json .jankurai/repo-score.json --md .jankurai/repo-score.md
+      - name: Upload repo-score artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: repo-score
+          path: |
+            .jankurai/repo-score.json
+            .jankurai/repo-score.md
+
+  tool-adoption:
+    name: tool-adoption-evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run adopted jankurai tool lanes
+        run: |
+          bash ops/ci/tool-adoption.sh
+          jankurai audit . --mode advisory --json .jankurai/repo-score.json --md .jankurai/repo-score.md
+          jankurai audit . --mode ratchet --baseline target/jankurai/accepted-baseline.json --json target/jankurai/repo-score.json --md target/jankurai/repo-score.md --repair-queue-jsonl target/jankurai/repair-queue.jsonl
+          jankurai proof . --changed-from origin/main --out target/jankurai/proof-plan.json --md target/jankurai/proof-plan.md
+      - name: Upload tool-adoption evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tool-adoption-evidence
+          path: |
+            .jankurai/repo-score.json
+            .jankurai/repo-score.md
+            target/jankurai/repo-score.json
+            target/jankurai/repo-score.md
+            target/jankurai/repair-queue.jsonl
+            target/jankurai/security/evidence.json
+            target/jankurai/language-bad-behavior.log
+            target/jankurai/proofbind/surface-witness.json
+            target/jankurai/proofbind/obligations.json
