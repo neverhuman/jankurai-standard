@@ -27,4 +27,4 @@ fi
 # release gate consumes.
 log "security lane: jankurai security run (SBOM + provenance evidence)"
 mkdir -p target/jankurai/security
-jankurai security run . --strict --profile ci --out target/jankurai/security/evidence.json
+jankurai security run . --strict --profile ci --out target/jankurai/security/evidence.json --script ops/ci/security-scans.sh

@@ -18,7 +18,7 @@ mkdir -p .jankurai target/jankurai target/jankurai/security target/jankurai/proo
 # / release-readiness / cost-budget all adopt the jankurai audit command, which
 # writes the repo-score evidence the workflow uploads.
 log "tool-adoption: audit-ci / contract-drift / release-readiness / cost-budget"
-jankurai audit . --mode advisory --json .jankurai/repo-score.json --md .jankurai/repo-score.md
+jankurai audit . --mode advisory --json .jankurai/repo-score.json --md .jankurai/repo-score.md --full
 cp .jankurai/repo-score.json target/jankurai/repo-score.json
 cp .jankurai/repo-score.md target/jankurai/repo-score.md
 # Adopted artifacts: .jankurai/repo-score.json .jankurai/repo-score.md
@@ -36,7 +36,7 @@ jankurai proofbind verify . --changed-from origin/main
 
 # security: secret + dependency + SBOM/provenance evidence in one lane.
 log "tool-adoption: security run"
-jankurai security run . --out target/jankurai/security/evidence.json
+jankurai security run . --out target/jankurai/security/evidence.json --script ops/ci/security-scans.sh
 # Adopted artifact: target/jankurai/security/evidence.json
 
 # ci/git/release bad-behavior: language-level workflow safety tests.
