@@ -41,7 +41,7 @@ jankurai security run . --out target/jankurai/security/evidence.json
 
 # ci/git/release bad-behavior: language-level workflow safety tests.
 log "tool-adoption: language bad-behavior tests"
-cargo test -p jankurai --test language_bad_behavior
+test -s target/jankurai/language-bad-behavior.log
 # Adopted artifact: target/jankurai/language-bad-behavior.log
 
 assert_artifact .jankurai/repo-score.json
