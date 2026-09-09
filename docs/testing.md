@@ -40,7 +40,8 @@ establish supervised execution; that requires the separate trusted CI producer.
 
 The same lanes are exposed through the root [`Justfile`](../Justfile)
 (`just fast`, `just check`, `just audit`) and run unchanged in CI via
-`ops/ci/<lane>.sh`, so a green local gate means a green CI run.
+`ops/ci/<lane>.sh`. Local success is a useful preflight; the exact PR head must
+also pass hosted CI with its selected toolchain and fresh artifacts.
 
 ## Fast lane
 

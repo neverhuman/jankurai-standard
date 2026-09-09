@@ -9,7 +9,7 @@ mkdir -p target
 baseline="agent/standard-inventory.txt"
 current="target/standard-inventory.txt"
 
-log "contract-drift: openapi-diff over docs/ and agent/"
+log "contract-drift: published document inventory over docs/ and agent/"
 find docs agent README.md AGENTS.md -type f | sort > "$current"
 
 if [ -f "$baseline" ]; then

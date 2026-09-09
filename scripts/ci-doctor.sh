@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # CI doctor: confirms the local environment has every tool the ops/ci lanes
 # depend on, with the versions pinned in ops/ci/lib.sh. Run this before pushing
-# to verify your machine matches what GitHub Actions provides. This is a
-# documentation/standard repo, so the only hard dependency is the jankurai
-# auditor; gitleaks and the dependency scanners are needed only when the
-# security lane runs against a committed manifest.
+# to verify the required tools are installed. Scanner and auditor versions are
+# selected by ops/ci/github-setup.sh and the pinned workflow; this presence
+# check alone does not establish version or execution provenance.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../ops/ci/lib.sh"
 

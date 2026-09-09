@@ -48,25 +48,17 @@ lint:
 test:
     bash ops/ci/required.sh
 
-# Targeted, narrow proof lanes for fast agent iteration. When a Rust or Node
-# product surface lands in this repo, these per-package commands keep the proof
-# loop fast and incremental; until then they run the scoped jankurai audit.
-# Targeted markers: cargo check -p, cargo nextest run -p, vitest run, pytest -k.
+# Run only the CI tooling's rejection tests for a short development loop.
 narrow:
-    jankurai audit . --no-score-history --changed-fast --json target/jankurai/fast-score.json --md target/jankurai/audit-fast.json
-    # cargo check -p <crate> --locked   # narrow per-package check when Rust lands
-    # cargo nextest run -p <crate>      # targeted test lane
-    # vitest run <file>                 # targeted web test lane
+    npm test
 
-# Security lane: secret scanning plus dependency scanning of any committed
-# lockfiles. gitleaks scans for committed secrets; cargo audit and npm audit
-# guard dependency manifests if a future change adds them.
+# Run the blocking scanner and validated-inventory lane.
 security:
     bash ops/ci/security.sh
 
-# openapi-diff style inventory of published standard documents.
+# Detect deletion of published standard documents.
 drift:
-    bash ops/ci/contract-drift.sh # openapi-diff over docs/ and agent/
+    bash ops/ci/contract-drift.sh
 
 # Jankurai self-audit lane: writes the repo-score artifacts that CI uploads.
 audit:
