@@ -1,5 +1,9 @@
 # jankurai-standard
 
+<!-- jankurai-badge:start -->
+[![Jankurai score: 86/100](agent/jankurai-badge.svg)](agent/jankurai-badge.json)
+<!-- jankurai-badge:end -->
+
 Standard, mission, public conformance policy, and agent-native guidance text for
 the **jankurai** auditor and merge control plane. This repository is one member
 of the Jankurai split family; read [`SPLIT.md`](SPLIT.md) for the family contract
@@ -43,7 +47,6 @@ integration runs the same lanes under
 | `docs/` | mission, standard, audit rubric, architecture, boundaries, release, exceptions |
 | `ops/` | pinned CI script entrypoints (`ops/ci/*.sh`) |
 | `scripts/` | local CI runner that delegates to `ops/ci/*.sh` |
-| `.jeryu/` | local Jeryu authoritative repo and public mirror metadata |
 
 ## Documentation
 
