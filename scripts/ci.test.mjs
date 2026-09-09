@@ -156,3 +156,19 @@ test('comparison base checks actual PR, resulting-main, and divergent commit gra
   git(['update-ref', '-d', 'refs/remotes/origin/main']);
   assert.notEqual(compare().status, 0);
 });
+
+
+test('document inventory handles unsorted baselines and blocks actual deletion', t => {
+  const f = fixture(t);
+  mkdirSync(join(f.cwd, 'docs')); mkdirSync(join(f.cwd, 'agent'));
+  for (const path of ['docs/a.md', 'AGENTS.md', 'README.md']) writeFileSync(join(f.cwd, path), path);
+  writeFileSync(join(f.cwd, 'agent/standard-inventory.txt'), 'docs/a.md\nREADME.md\nAGENTS.md\n');
+  const first = f.run({}, 'ops/ci/contract-drift.sh');
+  assert.equal(first.status, 0, first.stderr);
+  rmSync(join(f.cwd, 'docs/a.md'));
+  const removed = f.run({}, 'ops/ci/contract-drift.sh');
+  assert.notEqual(removed.status, 0); assert.match(removed.stderr, /docs\/a\.md/);
+  writeFileSync(join(f.cwd, 'docs/a.md'), 'restored');
+  rmSync(join(f.cwd, 'agent/standard-inventory.txt'));
+  assert.notEqual(f.run({}, 'ops/ci/contract-drift.sh').status, 0);
+});
