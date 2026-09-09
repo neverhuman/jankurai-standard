@@ -12,7 +12,7 @@ agent-readable map of those proofs.
 | required | `bash scripts/ci-local.sh required` | required standard documents and maps are present |
 | fast | `bash scripts/ci-local.sh fast` | required lane plus the jankurai self-audit |
 | audit | `bash scripts/ci-local.sh audit` | jankurai audit writes `repo-score` artifacts |
-| security | `bash tools/security-lane.sh` | gitleaks detect, actionlint, and SBOM hashes |
+| security | `bash tools/security-lane.sh` | gitleaks detect, zizmor, actionlint, and SBOM hashes |
 | gates | `bash scripts/ci-local.sh gates` | required -> fast -> audit, the full local gate |
 
 The same lanes are exposed through the root [`Justfile`](../Justfile)
