@@ -1,7 +1,7 @@
 # jankurai-standard
 
 <!-- jankurai-badge:start -->
-[![Jankurai score: 86/100](agent/jankurai-badge.svg)](agent/jankurai-badge.json)
+[![Jankurai score: 89/100](agent/jankurai-badge.svg)](agent/jankurai-badge.json)
 <!-- jankurai-badge:end -->
 
 Standard, mission, public conformance policy, and agent-native guidance text for
