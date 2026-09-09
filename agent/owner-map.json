@@ -19,6 +19,8 @@
     "tools/": "ops",
     "docs/": "standard",
     "target/": "ops",
-    ".gitleaksignore": "ops"
+    ".gitleaksignore": "ops",
+    "package.json": "ops",
+    "package-lock.json": "ops"
   }
 }

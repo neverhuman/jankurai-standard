@@ -6,6 +6,9 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
 
+log "required lane: CI rejection and artifact freshness tests"
+npm test
+
 log "required lane: standard documentation presence"
 assert_present docs/agent-native-standard.md
 assert_present docs/mission.md

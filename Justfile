@@ -1,8 +1,8 @@
 # jankurai-standard root command surface.
 # One-command setup and validation lanes for agents and CI.
 # This repository is a standard/documentation member of the Jankurai split
-# family: there is no Rust crate or Node package to build here, so every lane is
-# a deterministic, hermetic documentation-presence and self-audit proof loop
+# family: Node 24 runs the locked CI schema validator and rejection tests.
+# The documentation-presence and self-audit proof loop
 # that runs from the repository root.
 
 # Default: list available lanes.
@@ -12,6 +12,7 @@ default:
 # One-command bootstrap: this docs repo needs no compiler toolchain, so setup
 # resolves the local CI helpers and confirms the required proof inputs exist.
 setup:
+    npm ci
     bash scripts/ci-local.sh required
 
 # Alias for setup so `just install` and `just bootstrap` also resolve.
@@ -26,10 +27,10 @@ bootstrap: setup
 # acceleration marker between runs.
 fast:
     bash ops/ci/fast.sh
-    jankurai audit . --no-score-history --changed-fast --json .jankurai/repo-score.json --md .jankurai/repo-score.md
 
 # Run the full local check: documentation presence, fast lane, security, audit.
-check: fmt lint fast drift security audit
+check:
+    bash ops/ci/quality-gates.sh
 
 # Verify is an alias of check for agents that look for a `verify` lane.
 verify: check
@@ -61,7 +62,7 @@ narrow:
 # lockfiles. gitleaks scans for committed secrets; cargo audit and npm audit
 # guard dependency manifests if a future change adds them.
 security:
-    bash tools/security-lane.sh
+    bash ops/ci/security.sh
 
 # openapi-diff style inventory of published standard documents.
 drift:
