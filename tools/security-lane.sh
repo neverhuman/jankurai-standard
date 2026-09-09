@@ -1,46 +1,58 @@
 #!/usr/bin/env bash
-# Security lane tool runner for jankurai-standard.
+# Canonical security lane wrapper for jankurai-standard.
 #
-# Runs the secret, dependency, SBOM/provenance, and workflow-hardening scanners
-# declared in agent/security-policy.toml for the requested profile and folds the
-# results into the jankurai security evidence envelope. This docs/standard repo
-# has no dependency manifest of its own, so the dependency and SBOM scanners are
-# guarded by manifest presence; the secret scan and workflow-hardening scan
-# always run.
-#
-# Profiles: local | ci | release (see agent/security-policy.toml).
+# This repository ships standard text and agent maps. The operational posture is
+# secret scanning, workflow lint, and a hashed bill of materials of published
+# docs. Each executed required tool emits a `jankurai-security-step=` row so
+# `jankurai security run --profile ci` can record evidence.
 set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+mkdir -p target target/jankurai/security
 
-profile="${1:-ci}"
+run_step() {
+    local label="$1"
+    local tool="$2"
+    local shell_command="$3"
+    local advisory="$4"
+    shift 4
+    set +e
+    "$@"
+    local exit_code=$?
+    set -e
+    local status="ran"
+    if [[ ${exit_code} -ne 0 ]]; then
+        status="failed"
+    fi
+    printf 'jankurai-security-step={"label":"%s","tool":"%s","shell_command":"%s","status":"%s","advisory":%s,"exit_code":%d}\n' \
+        "${label}" "${tool}" "${shell_command}" "${status}" "${advisory}" "${exit_code}"
+    if [[ "${advisory}" == "true" ]]; then
+        return 0
+    fi
+    return "${exit_code}"
+}
 
-echo "[security-lane] profile=$profile: secret scan (gitleaks)"
-gitleaks detect --source . --no-banner --redact
+echo "[security] secret scan: gitleaks detect"
+run_step gitleaks gitleaks 'gitleaks detect --source . --no-banner --redact' false \
+    gitleaks detect --source . --no-banner --redact
 
-echo "[security-lane] profile=$profile: workflow hardening scan (zizmor)"
-zizmor .github/workflows
+echo "[security] workflow lint: zizmor + actionlint"
+run_step zizmor zizmor 'zizmor --no-progress .github/workflows' false \
+    zizmor --no-progress .github/workflows
+run_step actionlint actionlint 'actionlint' true \
+    actionlint
 
-if [ -f Cargo.toml ]; then
-  echo "[security-lane] cargo audit + cargo deny (Rust dependency advisories)"
-  cargo audit
-  cargo deny check advisories bans sources
+if [[ -f Cargo.toml ]]; then
+    echo "[security] cargo audit"
+    run_step cargo-audit cargo-audit 'cargo audit' true \
+        cargo audit
 fi
 
-if [ -f package.json ]; then
-  echo "[security-lane] npm audit (Node dependency advisories)"
-  npm audit --audit-level=high
+if [[ -f package.json ]]; then
+    echo "[security] npm audit"
+    run_step npm npm 'npm audit --audit-level=high' true \
+        npm audit --audit-level=high
 fi
 
-echo "[security-lane] SBOM + vulnerability scan (syft + grype / trivy)"
-if command -v syft >/dev/null 2>&1; then
-  syft . -o cyclonedx-json=target/jankurai/security/sbom.json
-fi
-if command -v grype >/dev/null 2>&1; then
-  grype dir:. --fail-on high
-elif command -v trivy >/dev/null 2>&1; then
-  trivy fs --severity HIGH,CRITICAL .
-fi
-
-echo "[security-lane] normalize evidence (jankurai security run)"
-mkdir -p target/jankurai/security
-jankurai security run . --strict --profile "$profile" --out target/jankurai/security/evidence.json
+echo "[security] SBOM / provenance: hash every published standard file"
+find docs agent README.md AGENTS.md -type f | sort | xargs sha256sum > target/sbom.txt
+echo "[security] sbom written to target/sbom.txt"

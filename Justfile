@@ -29,7 +29,7 @@ fast:
     jankurai audit . --no-score-history --changed-fast --json .jankurai/repo-score.json --md .jankurai/repo-score.md
 
 # Run the full local check: documentation presence, fast lane, security, audit.
-check: fmt lint fast security audit
+check: fmt lint fast drift security audit
 
 # Verify is an alias of check for agents that look for a `verify` lane.
 verify: check
@@ -61,7 +61,11 @@ narrow:
 # lockfiles. gitleaks scans for committed secrets; cargo audit and npm audit
 # guard dependency manifests if a future change adds them.
 security:
-    bash ops/ci/security.sh
+    bash tools/security-lane.sh
+
+# openapi-diff style inventory of published standard documents.
+drift:
+    bash ops/ci/contract-drift.sh # openapi-diff over docs/ and agent/
 
 # Jankurai self-audit lane: writes the repo-score artifacts that CI uploads.
 audit:
