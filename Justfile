@@ -27,6 +27,7 @@ bootstrap: setup
 # acceleration marker between runs.
 fast:
     bash ops/ci/fast.sh
+    jankurai audit . --no-score-history --changed-fast --json .jankurai/repo-score.json --md .jankurai/repo-score.md
 
 # Run the full local check: documentation presence, fast lane, security, audit.
 check:
@@ -61,6 +62,9 @@ drift:
     bash ops/ci/contract-drift.sh
 
 # Jankurai self-audit lane: writes the repo-score artifacts that CI uploads.
+score:
+    jankurai audit . --mode standard --no-badge --no-score-history --json .jankurai/repo-score.json --md .jankurai/repo-score.md --full
+
 audit:
     bash ops/ci/audit.sh
 
