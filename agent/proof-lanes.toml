@@ -2,8 +2,6 @@
 # This is a documentation/standard repo with no compiler toolchain, so every
 # lane below runs in this repository alone and its required_artifacts are
 # produced by its own command. Local and CI runs share the ops/ci/*.sh scripts.
-# Named lanes must match agent/test-map.json commands so Core emits rules_covered
-# and proofbind can authenticate agent-tool receipts.
 
 [[lane]]
 name = "required"
