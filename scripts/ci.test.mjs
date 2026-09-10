@@ -123,7 +123,7 @@ test('adoption invokes real policy commands and stops on auditor failure', t => 
   const f = fixture(t); const source = readFileSync(join(f.cwd, 'ops/ci/tool-adoption.sh'), 'utf8');
   assert.ok(source.includes('bash ops/ci/proof.sh')); assert.ok(source.includes('--mode ratchet'));
   assert.ok(readFileSync(join(f.cwd, 'ops/ci/proof.sh'), 'utf8').includes('proofbind verify'));
-  assert.ok(readFileSync(join(f.cwd, 'ops/ci/proof.sh'), 'utf8').includes('proofbind verify'));
+  assert.ok(readFileSync(join(f.cwd, 'ops/ci/proof.sh'), 'utf8').includes('--mode required'));
   assert.ok(readFileSync(join(f.cwd, 'ops/ci/proof.sh'), 'utf8').includes('--changed-from'));
   assert.ok(readFileSync(join(f.cwd, 'ops/ci/proof.sh'), 'utf8').includes('--proof-receipts'));
   assert.ok(readFileSync(join(f.cwd, 'ops/ci/proof.sh'), 'utf8').includes('--changed-from'));
