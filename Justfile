@@ -59,7 +59,7 @@ security:
 
 # Detect deletion of published standard documents.
 drift:
-    bash ops/ci/contract-drift.sh
+    bash ops/ci/contract-drift.sh # openapi-diff over docs/ and agent/
 
 # Jankurai self-audit lane: writes the repo-score artifacts that CI uploads.
 score:
