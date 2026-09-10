@@ -1,8 +1,8 @@
 # jankurai-standard root command surface.
 # One-command setup and validation lanes for agents and CI.
 # This repository is a standard/documentation member of the Jankurai split
-# family: there is no Rust crate or Node package to build here, so every lane is
-# a deterministic, hermetic documentation-presence and self-audit proof loop
+# family: Node 24 runs the locked CI schema validator and rejection tests.
+# The documentation-presence and self-audit proof loop
 # that runs from the repository root.
 
 # Default: list available lanes.
@@ -12,6 +12,7 @@ default:
 # One-command bootstrap: this docs repo needs no compiler toolchain, so setup
 # resolves the local CI helpers and confirms the required proof inputs exist.
 setup:
+    npm ci
     bash scripts/ci-local.sh required
 
 # Alias for setup so `just install` and `just bootstrap` also resolve.
@@ -29,7 +30,8 @@ fast:
     jankurai audit . --no-score-history --changed-fast --json .jankurai/repo-score.json --md .jankurai/repo-score.md
 
 # Run the full local check: documentation presence, fast lane, security, audit.
-check: fmt lint fast drift security audit
+check:
+    bash ops/ci/quality-gates.sh
 
 # Verify is an alias of check for agents that look for a `verify` lane.
 verify: check
@@ -47,27 +49,22 @@ lint:
 test:
     bash ops/ci/required.sh
 
-# Targeted, narrow proof lanes for fast agent iteration. When a Rust or Node
-# product surface lands in this repo, these per-package commands keep the proof
-# loop fast and incremental; until then they run the scoped jankurai audit.
-# Targeted markers: cargo check -p, cargo nextest run -p, vitest run, pytest -k.
+# Run only the CI tooling's rejection tests for a short development loop.
 narrow:
-    jankurai audit . --no-score-history --changed-fast --json target/jankurai/fast-score.json --md target/jankurai/audit-fast.json
-    # cargo check -p <crate> --locked   # narrow per-package check when Rust lands
-    # cargo nextest run -p <crate>      # targeted test lane
-    # vitest run <file>                 # targeted web test lane
+    npm test
 
-# Security lane: secret scanning plus dependency scanning of any committed
-# lockfiles. gitleaks scans for committed secrets; cargo audit and npm audit
-# guard dependency manifests if a future change adds them.
+# Run the blocking scanner and validated-inventory lane.
 security:
-    bash tools/security-lane.sh
+    bash ops/ci/security.sh
 
-# openapi-diff style inventory of published standard documents.
+# Detect deletion of published standard documents.
 drift:
     bash ops/ci/contract-drift.sh # openapi-diff over docs/ and agent/
 
 # Jankurai self-audit lane: writes the repo-score artifacts that CI uploads.
+score:
+    jankurai audit . --mode standard --no-badge --no-score-history --json .jankurai/repo-score.json --md .jankurai/repo-score.md --full
+
 audit:
     bash ops/ci/audit.sh
 

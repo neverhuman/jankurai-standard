@@ -4,6 +4,8 @@
 [![Jankurai score: 89/100](agent/jankurai-badge.svg)](agent/jankurai-badge.json)
 <!-- jankurai-badge:end -->
 
+Badge source: [5d832342](https://github.com/neverhuman/jankurai-standard/commit/5d832342525560252f850b592002abfdf2716571), with the exact auditor binary recorded in [audit provenance](agent/baselines/main.repo-score.provenance.json).
+
 Standard, mission, public conformance policy, and agent-native guidance text for
 the **jankurai** auditor and merge control plane. This repository is one member
 of the Jankurai split family; read [`SPLIT.md`](SPLIT.md) for the family contract

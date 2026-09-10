@@ -2,6 +2,8 @@
 # This is a documentation/standard repo with no compiler toolchain, so every
 # lane below runs in this repository alone and its required_artifacts are
 # produced by its own command. Local and CI runs share the ops/ci/*.sh scripts.
+# Named lanes must match agent/test-map.json commands so Core emits rules_covered
+# and proofbind can authenticate agent-tool receipts.
 
 [[lane]]
 name = "required"
@@ -10,7 +12,12 @@ purpose = "verify the canonical standard documents are present and routable"
 command_id = "lane.required"
 kind = "validation"
 cost = 2
-rules_covered = ["HLT-003-OWNERLESS-PATH", "HLT-004-UNMAPPED-PROOF"]
+rules_covered = [
+  "HLT-003-OWNERLESS-PATH",
+  "HLT-004-UNMAPPED-PROOF",
+  "HLT-008-FALSE-GREEN-RISK",
+  "HLT-024-AGENT-TOOL-SUPPLY-GAP",
+]
 required_artifacts = []
 timeout_seconds = 300
 requires_network = false
@@ -23,7 +30,12 @@ purpose = "documentation-presence checks plus the jankurai self-audit"
 command_id = "lane.fast"
 kind = "validation"
 cost = 5
-rules_covered = ["HLT-001-DEAD-MARKER", "HLT-003-OWNERLESS-PATH", "HLT-004-UNMAPPED-PROOF"]
+rules_covered = [
+  "HLT-001-DEAD-MARKER",
+  "HLT-003-OWNERLESS-PATH",
+  "HLT-004-UNMAPPED-PROOF",
+  "HLT-008-FALSE-GREEN-RISK",
+]
 required_artifacts = [".jankurai/repo-score.json", ".jankurai/repo-score.md"]
 timeout_seconds = 900
 requires_network = false
@@ -36,7 +48,13 @@ purpose = "write .jankurai/repo-score.json and .jankurai/repo-score.md"
 command_id = "lane.audit"
 kind = "audit"
 cost = 5
-rules_covered = ["HLT-001-DEAD-MARKER", "HLT-003-OWNERLESS-PATH", "HLT-004-UNMAPPED-PROOF", "HLT-008-FALSE-GREEN-RISK"]
+rules_covered = [
+  "HLT-001-DEAD-MARKER",
+  "HLT-003-OWNERLESS-PATH",
+  "HLT-004-UNMAPPED-PROOF",
+  "HLT-008-FALSE-GREEN-RISK",
+  "HLT-024-AGENT-TOOL-SUPPLY-GAP",
+]
 required_artifacts = [".jankurai/repo-score.json", ".jankurai/repo-score.md"]
 timeout_seconds = 900
 requires_network = false
@@ -49,7 +67,15 @@ purpose = "secret scanning and dependency scanning of any committed manifests"
 command_id = "lane.security"
 kind = "security"
 cost = 10
-rules_covered = ["HLT-010-SECRET-SPRAWL", "HLT-016-SUPPLY-CHAIN-DRIFT", "HLT-020-CI-HARDENING-GAP"]
+rules_covered = [
+  "HLT-009-GENERATED-SECURITY",
+  "HLT-010-SECRET-SPRAWL",
+  "HLT-011-PROMPT-INJECTION",
+  "HLT-012-OVERBROAD-AGENCY",
+  "HLT-016-SUPPLY-CHAIN-DRIFT",
+  "HLT-020-CI-HARDENING-GAP",
+  "HLT-024-AGENT-TOOL-SUPPLY-GAP",
+]
 required_artifacts = []
 timeout_seconds = 900
 requires_network = false

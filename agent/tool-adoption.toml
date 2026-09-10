@@ -38,7 +38,7 @@ mode = "auto"
 
 [[tools]]
 id = "proofbind"
-mode = "disabled"
+mode = "auto"
 
 [[tools]]
 id = "release-bad-behavior"

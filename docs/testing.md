@@ -5,19 +5,43 @@ This repository ships the public standard text, not a running service, so
 self-audit receipts stay present and internally consistent. This document is the
 agent-readable map of those proofs.
 
+## CI tooling and security evidence
+
+Use Node 24 and run `npm ci` before the local proof lanes. The lockfile pins
+AJV and its format validators; `npm test` runs the aggregate, scanner-failure,
+and stale/invalid-artifact tests with temporary controlled subprocesses.
+The controlled subprocesses test the lane; hosted CI also runs the real tools.
+
+`bash scripts/ci-local.sh security` and `just security` run one strict scanner
+entrypoint. Gitleaks, zizmor, actionlint, Syft, CycloneDX validation, and Grype
+are required. Cargo audit/deny and npm audit also block when their manifest is
+present. Zizmor SARIF findings block even when the process exits successfully.
+Each scan uses a new `target/jankurai/security/run.*` directory. Missing,
+invalid, stale, or symlinked SBOMs fail before Grype; there is no hash-list
+fallback. CycloneDX 1.6 is checked against the unchanged vendored upstream
+schema, with all schema references resolved offline. Failed run artifacts stay
+available in their run directory. Stable output names are published only when
+the full lane succeeds.
+
+The full `just check` gate uses the same scripts as hosted CI, including the
+baseline, security, required proofbind, and ratchet audit. The policy floor and
+zero-drop ratchet remain mandatory. Repository-owned security reports do not
+establish supervised execution; that requires the separate trusted CI producer.
+
 ## Proof lanes
 
 | Lane | Command | What it proves |
 | --- | --- | --- |
-| required | `bash scripts/ci-local.sh required` | required standard documents and maps are present |
+| required | `bash scripts/ci-local.sh required` | required documents, maps, and CI rejection tests pass |
 | fast | `bash scripts/ci-local.sh fast` | required lane plus the jankurai self-audit |
 | audit | `bash scripts/ci-local.sh audit` | jankurai audit writes `repo-score` artifacts |
-| security | `bash tools/security-lane.sh` | gitleaks detect, zizmor, actionlint, and SBOM hashes |
-| gates | `bash scripts/ci-local.sh gates` | required -> fast -> audit, the full local gate |
+| security | `bash scripts/ci-local.sh security` | required scanners and a fresh validated CycloneDX inventory |
+| gates | `bash scripts/ci-local.sh gates` | baseline, required, fast, drift, security, audit, and tool adoption |
 
 The same lanes are exposed through the root [`Justfile`](../Justfile)
 (`just fast`, `just check`, `just audit`) and run unchanged in CI via
-`ops/ci/<lane>.sh`, so a green local gate means a green CI run.
+`ops/ci/<lane>.sh`. Local success is a useful preflight; the exact PR head must
+also pass hosted CI with its selected toolchain and fresh artifacts.
 
 ## Fast lane
 
@@ -43,16 +67,16 @@ finding, its `rule_id`, `path`, and severity.
 
 ## Cost budget
 
-This repo runs no model calls, no paid APIs, and no long-running builds, so its
-recurring CI cost budget is effectively zero: short jobs (document presence
-and a single audit invocation), each capped at a 20-minute timeout in
+This repo runs no model calls or paid APIs. Its quality job builds the pinned
+auditor, runs the proof lanes and network-backed security scanners, and is
+capped at a 90-minute timeout in
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). The fast lane is
 designed to complete in seconds locally so agent iteration stays cheap.
 
 Explicit budget policy for any paid or unbounded operation introduced later:
 
-- **Budget and quota**: the per-run compute budget is the 20-minute job timeout;
-  the quota is at most one full audit invocation per job. There is no per-token
+- **Budget and quota**: the per-run compute budget is the 90-minute quality-job timeout;
+  the quota is the fixed lane sequence in `ops/ci/github-check.sh`. There is no per-token
   spend because no model or paid API is called.
 - **Spend cap and kill switch**: the job timeout is the hard spend cap and acts
   as the kill switch — a lane that exceeds it is terminated by CI.
